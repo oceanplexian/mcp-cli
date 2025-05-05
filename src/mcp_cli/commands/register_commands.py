@@ -1,10 +1,14 @@
 # mcp_cli/commands/register_commands.py
 import typer
 from mcp_cli.commands import ping, chat, prompts, tools, resources, interactive, cmd
+from mcp_cli.commands import discord_bot # Import the new discord bot module
 
 # Import our improved run_command implementation
 from mcp_cli.run_command import run_command
 from mcp_cli.stream_manager import StreamManager
+import logging
+import os
+from typing import Optional
 
 def ping_command(
     config_file: str = "server_config.json",
@@ -24,12 +28,27 @@ def chat_command(
     server: str = None,
     provider: str = "openai",
     model: str = None,
-    disable_filesystem: bool = False,
+    disable_filesystem: bool = True,
+    logging_level: str = "WARNING",
 ):
-    """Start a chat session."""
+    """Interactive chat mode."""
     from mcp_cli.cli_options import process_options
+    
+    # Set logging level
+    numeric_level = getattr(logging, logging_level.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError(f"Invalid logging level: {logging_level}")
+    logging.getLogger().setLevel(numeric_level)
+    logging.debug(f"Logging level set to {logging_level.upper()}")
+    
+    # Set environment variables for provider and model
+    os.environ["LLM_PROVIDER"] = provider
+    os.environ["LLM_MODEL"] = model if model else "gpt-4o-mini"
+    
     servers, user_specified, server_names = process_options(server, disable_filesystem, provider, model, config_file)
-    run_command(chat.chat_run, config_file, servers, user_specified, {"server_names": server_names})
+    run_command(chat.chat_run, config_file, servers, user_specified, {
+        "server_names": server_names
+    })
     return 0
 
 def interactive_command(
@@ -131,6 +150,25 @@ def cmd_command(
     run_command(cmd.cmd_run, config_file, servers, user_specified, extra_params)
     return 0
 
+def discord_command(
+    config_file: str = "server_config.json",
+    server: str = None,
+    provider: str = "openai",
+    model: str = None,
+    disable_filesystem: bool = False,
+):
+    """Run the Discord bot to interact with MCP servers and LLM."""
+    from mcp_cli.cli_options import process_options
+    servers, user_specified, server_names = process_options(server, disable_filesystem, provider, model, config_file)
+    
+    # Set environment variables for provider and model
+    os.environ["LLM_PROVIDER"] = provider
+    os.environ["LLM_MODEL"] = model if model else "gpt-4o-mini"
+    
+    # Use run_command utility to handle StreamManager creation/cleanup
+    run_command(discord_bot.run_discord_bot, config_file, servers, user_specified, {"server_names": server_names})
+    return 0
+
 def register_commands(app: typer.Typer, process_options, run_command_func):
     """Register all commands on the provided Typer app."""
     # Note: We ignore the run_command_func parameter and use our improved version
@@ -139,6 +177,7 @@ def register_commands(app: typer.Typer, process_options, run_command_func):
     app.command("chat")(chat_command)
     app.command("interactive")(interactive_command)
     app.command("cmd")(cmd_command)
+    app.command("discord")(discord_command)
     
     # Create sub-typer apps for prompts, tools, and resources.
     prompts_app = typer.Typer(help="Prompts commands")

@@ -36,6 +36,8 @@ class ChatUIManager:
         self.interrupt_requested = False  # Flag to track if user requested interrupt
         self.tool_times = []  # List to track time taken by each tool
         self.last_input = None  # Store the last input
+        self.assistant_live = None # Rich Live instance for streaming response
+        self.current_assistant_text = Text() # Text object for streaming
         
         # Set up prompt_toolkit session with history and tab completion
         history_file = os.path.expanduser("~/.mcp_chat_history")
@@ -180,43 +182,79 @@ class ChatUIManager:
         self.live_display.update(display_text)
     
     def print_assistant_response(self, response_content, response_time):
-        """Print formatted assistant response."""
-        # If we're in compact mode, stop the live display
+        """Print formatted assistant response (NON-STREAMING)."""
+        # Ensure any previous tool or streaming display is stopped
+        self._stop_tool_display()
+        # self._stop_streaming_display() # No longer needed here
+
+        # Prepare and print the final panel for non-streamed responses
+        self._print_final_assistant_panel(response_content, response_time)
+
+    async def stream_assistant_chunk(self, chunk: str):
+        """Print a chunk directly to the console during streaming."""
+        # Ensure tool display is stopped before starting streaming display
+        self._stop_tool_display()
+
+        # Print a header only on the first chunk
+        if not hasattr(self, '_streaming_header_printed'):
+            self.console.print("[bold purple]Assistant:[/bold purple]")
+            self._streaming_header_printed = True
+
+        # Print the chunk directly without newline
+        self.console.print(chunk, end="")
+        # We might need a flush here if console doesn't auto-flush
+        # self.console.file.flush() # Try adding if needed
+
+    async def finalize_assistant_response(self, full_content: str, response_time: float):
+        """Finalize the assistant response display after streaming."""
+        # Stop the tool display (streaming display is already stopped implicitly)
+        self._stop_tool_display()
+
+        # Print a newline to finish the streamed output
+        self.console.print()
+
+        # Print the response time footer
+        footer = f"Response time: {response_time:.2f}s"
+        self.console.print(f"[dim]{footer}[/dim]")
+
+        # Reset the header flag for the next response
+        if hasattr(self, '_streaming_header_printed'):
+            del self._streaming_header_printed
+
+        # NOTE: We are NOT printing the full panel here for streamed responses.
+        # The content is already on the screen.
+
+    def _stop_tool_display(self):
+        """Stop and clear the tool display if active."""
         if not self.verbose_mode and self.live_display:
             self.live_display.stop()
-            
-            # Record the time for the last tool if it's still running
             if self.current_tool_start_time and len(self.tool_times) < len(self.tool_calls):
                 elapsed = time.time() - self.current_tool_start_time
                 self.tool_times.append(elapsed)
-            
-            # Clear the line to remove the ongoing tool display
-            print("\r" + " " * 120, end="\r")  # Clear line with plenty of spaces
-                
-            # Calculate total tool execution time if tools were running
+            print("\r" + " " * 120, end="\r")  # Clear line
             if self.tool_start_time:
                 tool_time = time.time() - self.tool_start_time
-                
-                # Display a summary of tool times
                 print(f"[dim]Tools completed in {tool_time:.2f}s total[/dim]")
-                
-                # Reset tool tracking
-                self.tool_start_time = None
-                self.current_tool_start_time = None
-                self.tools_running = False
-                self.tool_times = []
-        
-        assistant_panel_text = response_content if response_content else "[No Response]"
+            self.tool_start_time = None
+            self.current_tool_start_time = None
+            self.tools_running = False
+            self.tool_times = []
+            self.live_display = None # Ensure it's reset
+
+    def _print_final_assistant_panel(self, content: str, response_time: float):
+        """Prints the final assistant response panel with Markdown and footer."""
+        assistant_panel_text = content if content else "[No Response]"
         footer = f"Response time: {response_time:.2f}s"
         print(
             Panel(
                 Markdown(assistant_panel_text), 
-                style="bold blue", 
+                style="bold purple", 
                 title="Assistant",
-                subtitle=footer
+                subtitle=footer,
+                expand=True
             )
         )
-        
+
     async def handle_command(self, command):
         """Handle a command and update context if needed."""
         # Add a command to toggle verbose mode
