@@ -47,21 +47,6 @@
       "ddg-search": {
           "command": "uvx",
           "args": ["duckduckgo-mcp-server"]
-      },
-      "home-assistant": {
-        "command": "/opt/homebrew/bin/mcp-proxy",
-        "env": {
-          "SSE_URL": "http://home-assistant-819e66.fieldio.com:8123/mcp_server/sse",
-          "API_ACCESS_TOKEN": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJiNjcyNDBkYjU1OTQ0NWU3YTc1ZGM0NjFhNzc5OTlhZCIsImlhdCI6MTc0NjM4MjkyNywiZXhwIjoyMDYxNzQyOTI3fQ.E1_VGrUpBeXTRli5hMYr2PqUkiOh9CRO8tVYRn8EQso"
-        }
-      },
-      "hass-mcp-local": {
-        "command": "sh",
-        "args": ["-c", "cd /Users/admin/scripts/hass-mcp && /opt/homebrew/bin/uv run python -m app"],
-        "env": {
-          "HA_URL": "http://home-assistant-819e66.fieldio.com:8123",
-          "HA_TOKEN": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJiNjcyNDBkYjU1OTQ0NWU3YTc1ZGM0NjFhNzc5OTlhZCIsImlhdCI6MTc0NjM4MjkyNywiZXhwIjoyMDYxNzQyOTI3fQ.E1_VGrUpBeXTRli5hMYr2PqUkiOh9CRO8tVYRn8EQso"
-        }
       }
     }
   }
