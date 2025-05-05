@@ -19,7 +19,7 @@ class SystemPromptGenerator:
         {{ USER SYSTEM PROMPT }}
         {{ TOOL CONFIGURATION }}
         """
-        self.default_user_system_prompt = "You are an intelligent assistant capable of using tools to solve user queries effectively."
+        self.default_user_system_prompt = "You are AGENT X, an intelligent assistant capable of using tools to solve user queries effectively."
         self.default_tool_config = "No additional configuration is required."
 
     def generate_prompt(

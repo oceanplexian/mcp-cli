@@ -33,12 +33,25 @@ mcp-cli = "mcp_cli.main:app"
 mcp-llm = "mcp_cli.llm.__main__:main"
 
 [project.optional-dependencies]
-wasm = []
-dev = [
-  "numpy>=2.2.3",
-  "pytest-asyncio>=0.25.3",
-  "asyncio>=3.4.3"
+# Optional dependencies for the CLI features
+cli = [
+    "rich>=13.0.0",
+    "prompt-toolkit>=3.0.0",
+    "typer>=0.9.0",
+    "pyperclip>=1.8.0",
+    "python-dotenv>=1.0.0",
+    "discord.py>=2.3.0", # Added Discord library
 ]
+
+# Optional dependencies for development
+dev = [
+    "numpy>=2.2.3",
+    "pytest>=7.0",
+    "pytest-asyncio>=0.18",
+    "uv>=0.1.10", # Added uv for development tooling
+]
+
+wasm = []
 
 [tool.setuptools]
 package-dir = { "" = "src" }

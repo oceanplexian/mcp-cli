@@ -43,6 +43,10 @@
       "sandbox": {
         "command": "uv",
         "args": ["--directory", "/Users/christopherhay/chris-source/agent-x/mcp-servers/chuk-mcp-sandbox", "run", "src/chuk_mcp_sandbox/main.py"]
+      },
+      "ddg-search": {
+          "command": "uvx",
+          "args": ["duckduckgo-mcp-server"]
       }
     }
   }

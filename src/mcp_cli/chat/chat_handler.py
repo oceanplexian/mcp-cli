@@ -4,6 +4,7 @@ import sys
 import gc
 from rich import print
 from rich.panel import Panel
+import logging
 
 # mcp cli imports
 from mcp_cli.chat.chat_context import ChatContext
@@ -23,6 +24,8 @@ async def handle_chat_mode(stream_manager, provider="openai", model="gpt-4o-mini
         provider: LLM provider name (default: "openai")
         model: LLM model name (default: "gpt-4o-mini")
     """
+    logging.debug("Starting chat mode")
+
     ui_manager = None
     exit_code = 0
     
